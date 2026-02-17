@@ -1,1411 +1,307 @@
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-  <script>
-    console.log("Welcome to TrioChat!")
-    console.warn("This project is still being worked on and is right now in BETA. Version 1.2.1")
-  </script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TrioChat BETA</title>
-  <link rel="icon" href="assets/icons/favicon.ico" type="image/x-icon">
-  <style>
-  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f0f0f0; display:flex; justify-content:center; align-items:center; height:100vh; transition: background 0.3s, color 0.3s; }
-  body.dark-theme { background:#1e1e1e; color:white; }
-  #username-page, #chat-page { display:none; width:100%; max-width:700px; flex-direction:column; align-items:center; }
-  #username-page input { padding:10px; font-size:16px; }
-  #username-page button { margin:5px; padding:10px 20px; font-size:16px; border:none; background:#007bff; color:white; border-radius:5px; cursor:pointer; }
-  #error { color:red; margin-top:10px; text-align:center; }
-  h2 { text-align:center; background:#007bff; color:white; padding:10px 20px; margin:10px 0; border-radius:5px; display:inline-block; }
-  #room-select { text-align:center; margin:10px 0; }
-  #room-select button { margin:0 5px; padding:5px 10px; cursor:pointer; border:none; border-radius:5px; background:#ccc; color:black; }
-  #room-select button.active { background:#007bff; color:white; }
-  .chat-container { display:flex; width:100%; height:500px; background:#fff; border:1px solid #ccc; border-radius:5px; overflow:hidden; transition: background 0.3s, color 0.3s; }
-  .dark-theme .chat-container { background:#2c2c2c; color:white; border-color:#555; }
-  #user-list { width:200px; border-right:1px solid #ccc; background:#f9f9f9; padding:10px; overflow-y:auto; display:flex; flex-direction:column; transition: background 0.3s; }
-  .dark-theme #user-list { background:#333; border-color:#555; }
-  #user-list h4 { margin-top:0; }
-  #users { flex:1; }
-  #status-box { border-top:1px solid #ccc; padding:8px; background:#eee; text-align:center; transition: background 0.3s; }
-  .dark-theme #status-box { background:#444; border-color:#555; }
-  #status-box h5 { margin:4px 0; }
-  #status-buttons button { margin:3px; padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
-  .online-btn { background:#28a745; color:white; }
-  .dnd-btn { background:#dc3545; color:white; }
-  #chat-area { flex:1; display:flex; flex-direction:column; }
-  #chat-box { flex:1; padding:10px; overflow-y:auto; background:#f9f9f9; transition: background 0.3s, color 0.3s; }
-  .dark-theme #chat-box { background:#222; color:white; }
-  .msg { margin:5px 0; padding:8px 12px; background:#e1f5fe; border-radius:5px; transition: background 0.3s, color 0.3s; }
-  .dark-theme .msg { background:#444; color:white; }
-  #message-form { display:flex; padding:10px; border-top:1px solid #ccc; background:#eee; transition: background 0.3s; }
-  .dark-theme #message-form { background:#444; border-color:#555; }
-  #message-input { flex:1; padding:10px; border:1px solid #ccc; border-radius:5px; }
-  button.send-btn { margin-left:10px; padding:10px 20px; border:none; background:#007bff; color:white; border-radius:5px; cursor:pointer; }
-  button.send-btn:disabled { background:#999; cursor:not-allowed; }
-  .user-item { padding:4px 6px; border-bottom:1px solid #ddd; transition: background 0.3s, color 0.3s; }
-  .dark-theme .user-item { border-color:#555; }
-  .user-name { font-weight:bold; }
-  .user-buttons { margin-top:4px; display:flex; gap:4px; }
-  .user-buttons button { flex:1; font-size:11px; padding:3px; border:none; border-radius:3px; cursor:pointer; }
-  .block-btn { background:#dc3545; color:white; }
-  .dm-btn { background:#28a745; color:white; }
-  #settings-popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#fff; padding:20px; border-radius:5px; box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:10000; width:250px; }
-  .dark-theme #settings-popup { background:#333; color:white; }
-  #settings-popup h3 { margin-top:0; text-align:center; }
-  #settings-popup button { margin:5px 0; width:100%; padding:8px; cursor:pointer; border:none; border-radius:5px; }
-  #settings-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; }
-  .badge { width: 24px; height: 24px; vertical-align: middle; margin-left: 4px; }
-  .dm-window {
-    width: 250px;
-    height: 300px;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    overflow: hidden;
-  }
-  .dark-theme .dm-window {
-    background: #2c2c2c;
-    border-color: #555;
-    color: white;
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrioChat</title>
+    <link rel="stylesheet" href="assets/css/index.css">
+</head>
+<body>
 
-  .dm-header {
-    background: #007bff;
-    color: #fff;
-    padding: 5px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .dm-chat {
-    flex: 1;
-    padding: 5px;
-    overflow-y: auto;
-    background: #f9f9f9;
-  }
-  .dark-theme .dm-chat {
-    background: #222;
-    color: white;
-  }
-
-  .dm-form {
-    display: flex;
-    border-top: 1px solid #ccc;
-  }
-  .dark-theme .dm-form {
-    border-color: #555;
-  }
-  .dm-form input {
-    flex: 1;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 0;
-    outline: none;
-  }
-  .dark-theme .dm-form input {
-    background: #333;
-    border-color: #555;
-    color: white;
-  }
-  .dm-form button {
-    padding: 2px 4px;
-    border: none;
-    background: #007bff;
-    color: white;
-    cursor: pointer;
-  }
-  .dm-form button:hover {
-    background: #0062cc;
-  }
-  .user-buttons {
-    display: flex;
-    gap: 4px;
-    margin-top: 4px;
-  }
-  .user-buttons button {
-    flex: 1;
-    font-size: 11px;
-    padding: 3px;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  .block-btn { background:#dc3545; color:white; }
-  .dm-btn { background:#28a745; color:white; }
-  .status-btn.active {
-  background: #4caf50;
-  color: white;
-  }
-  #status-page-btn {
-  position: fixed;
-  bottom: 15px;
-  left: 15px;
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 9999;
-  transition: background 0.3s;
-  }
-  #status-page-btn:hover {
-    background: #0056b3;
-  }
-  #rules-page-btn {
-  position: fixed;
-  bottom: 15px;
-  left: 130px;
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 9999;
-  transition: background 0.3s;
-  }
-  #rules-page-btn:hover {
-    background: #0056b3;
-  }
-  #updates-page-btn {
-  position: fixed;
-  bottom: 15px;
-  left: 207px;
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 9999;
-  transition: background 0.3s;
-  }
-  #updates-page-btn:hover {
-    background: #0056b3;
-  }
-  #version-label {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    padding: 4px 8px;
-    border-radius: 5px;
-    font-size: 12px;
-    font-family: Arial, sans-serif;
-    z-index: 9999;
-    pointer-events: none;
-    transition: background 0.3s, color 0.3s;
-  }
-  /* --- Top Bar --- */
-  #top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding-left: 15px;
-    background: #f8f9fa;       /* light mode background */
-    color: #000;               /* light mode text */
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    z-index: 10000;            /* make sure it's above everything */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    transition: background 0.3s, color 0.3s;
-  }
-
-  /* When dark mode is active */
-  .dark-theme #top-bar {
-    background: #121212;  /* darker, matches your dark theme */
-    color: #ffffff;       /* white text */
-    box-shadow: 0 2px 5px rgba(255,255,255,0.1);
-  }
-  /* Push chat container down so bar doesn't overlap */
-  #chat-page {
-    margin-top: 50px; /* space for the bar */
-  }
-  </style>
-  </head>
-  <body>
-
-  <div id="username-page">
-    <h2>Welcome to TrioChat!</h2>
-    <input type="text" id="username-input" placeholder="Username" />
-    <div style="margin-top:10px;">
-      <button id="register-btn">Register</button>
-      <button id="login-key-btn">Login with Key</button>
-    </div>
-    <div id="error"></div>
-  </div>
-
-  <div id="chat-page">
-    <h2>TrioChat</h2>
-    <div id="room-select">
-      <button class="room-btn" data-room="Room 1">Room 1</button>
-      <button class="room-btn" data-room="Room 2">Room 2</button>
-      <button class="room-btn" data-room="Room 3">Room 3</button>
-      <button id="create-room-btn" style="background:#28a745;color:white;">+ Create Room</button>
-    </div>
-    <div class="chat-container">
-      <div id="user-list">
-        <h4>Online Users</h4>
-        <div id="users"></div>
-        <div id="status-box">
-          <h5 id="status-username"></h5>
+    <div id="login-screen">
+        <div class="login-bg-blobs">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
         </div>
-      </div>
-      <div id="chat-area">
-        <div id="chat-box"></div>
-        <form id="message-form">
-          <input type="text" id="message-input" placeholder="Type a message!.." required />
-          <button class="send-btn" type="submit">Send</button>
-        </form>
-      </div>
-    </div>
-  </div>
 
-  <div id="top-bar">
-    <span id="datetime"></span>
-    <button id="settings-btn" style="background:#6c757d;color:white;">Settings</button>
-  </div>
+        <div class="login-box">
+            <div class="login-brand">
+                <img src="favicon.ico" alt="TrioChat Logo" class="brand-logo">
+                <h1 id="auth-title">TrioChat</h1>
+                <p class="auth-subtitle">The upcoming platform of global connection.</p>
+            </div>
+            
+            <form id="auth-form">
+                <div class="input-group" id="username-group" style="display: none;">
+                    <label>USERNAME</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username-input" placeholder="Voxelra">
+                        <span class="input-focus-bg"></span>
+                    </div>
+                </div>
 
-  <div id="settings-popup">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <h3 style="margin:0; flex:1; text-align:center;">Settings</h3>
-    <button id="close-settings-top" style="
-      background:#dc3545;
-      color:white;
-      border:none;
-      border-radius:5px;
-      width:30px;
-      height:30px;
-      font-size:18px;
-      cursor:pointer;
-      margin-left:10px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    ">X</button>
-    </div>
-    <button id="generate-key-btn-settings">Generate Login Key</button>
-    <button id="dark-mode-toggle">Toggle Dark Mode</button>
-    <button id="logout-btn">Logout</button>
-    <button id="delete-account-btn" style="background:#dc3545;color:white;">Delete Account</button>
-    <button id="admin-panel-btn" style="background:#710d65fc;color:white; display:none;">Admin Panel</button>
-  </div>
+                <div class="input-group">
+                    <label>EMAIL</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email-input" required placeholder="name@example.com">
+                        <span class="input-focus-bg"></span>
+                    </div>
+                </div>
 
-  <div id="settings-overlay" 
-      style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998;">
-  </div>
+                <div class="input-group">
+                    <label>PASSWORD</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password-input" required placeholder="********">
+                        <span class="input-focus-bg"></span>
+                    </div>
+                </div>
 
-  <div id="dm-container" style="position: fixed; bottom: 10px; right: 10px; display: flex; flex-direction: column; gap: 10px; z-index: 9999;"></div>
+                <button type="submit" id="auth-btn" class="glow-button">Enter the Chat</button>
+            </form>
 
-  <div id="admin-panel-popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:#fff; padding:20px; border-radius:5px; box-shadow:0 2px 10px rgba(0,0,0,0.3); z-index:10000; width:300px;">
+            <p id="auth-error"></p>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <h3 style="margin:0;">Admin Panel</h3>
-      <button id="close-admin-panel">X</button>
+            <div class="switch-auth">
+                <span id="switch-text">New to the community?</span> 
+                <a href="#" id="switch-btn">Create an account</a>
+            </div>
+        </div>
     </div>
 
-    <div style="display:flex; gap:5px; margin-bottom:10px;">
-      <button id="users-tab">Users</button>
-      <button id="warnings-tab">Warnings</button>
-    </div>
-
-  <div id="users-view" style="max-height:400px; overflow-y:auto;"></div>
-    <div id="warnings-view" style="max-height:400px; overflow-y:auto; display:none;"></div>
-  </div>
-
-  <audio id="notif-sound" src="assets/sounds/notify.mp3" preload="auto"></audio>
-  <script type="module">
-  let cachedMessages = [];
-  let unsubscribeMessages = null;
-  let lastTimestamp = Date.now();
-  const body = document.body;
-
-  if (localStorage.getItem("darkMode") === "true") {
-    body.classList.add("dark-theme");
-  }
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { 
-      getFirestore, collection, doc, getDoc, setDoc, addDoc, getDocs, 
-      serverTimestamp, query, orderBy, onSnapshot, deleteDoc, where 
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-      // G99KFB05
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCH3EXgZ9FN_t_tEW10uR5YmHiX_pabzew",
-    authDomain: "triochat-cbd25.firebaseapp.com",
-    projectId: "triochat-cbd25",
-    storageBucket: "triochat-cbd25.appspot.com",
-    messagingSenderId: "240591787712",
-    appId: "1:240591787712:web:7486c19c654a173eb4bf25",
-    measurementId: "G-TFXZ6HSSHN"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-    signInAnonymously(auth)
-      .then(() => console.log("Signed in anonymously"))
-      .catch((error) => console.error("Auth error:", error));
-
-  // DOM
-  const usernamePage = document.getElementById("username-page");
-  const chatPage = document.getElementById("chat-page");
-  const usernameInput = document.getElementById("username-input");
-  const errorDiv = document.getElementById("error");
-  const chatBox = document.getElementById('chat-box');
-  const messageForm = document.getElementById('message-form');
-  const messageInput = document.getElementById('message-input');
-  const sendButton = document.querySelector(".send-btn");
-  const roomButtonsContainer = document.getElementById("room-select");
-  let roomButtons = document.querySelectorAll(".room-btn");
-  const usersDiv = document.getElementById("users");
-  const statusUsername = document.getElementById("status-username");
-  const closeSettingsTopBtn = document.getElementById("close-settings-top");
-
-  const registerBtn = document.getElementById("register-btn");
-  const loginKeyBtn = document.getElementById("login-key-btn");
-
-  const settingsBtn = document.getElementById("settings-btn");
-  const settingsPopup = document.getElementById("settings-popup");
-  const generateKeySettingsBtn = document.getElementById("generate-key-btn-settings");
-  const darkModeToggleBtn = document.getElementById("dark-mode-toggle");
-  const logoutBtn = document.getElementById("logout-btn");
-  const deleteAccountBtn = document.getElementById("delete-account-btn");
-
-  let username = "";
-  let currentRoom = "Room 1";
-  let blockedUsers = JSON.parse(localStorage.getItem("blockedUsers") || "[]");
-  const onlineUsersMap = new Map();
-  const roleUnsubscribes = new Map();
-  let unsubscribeRooms = null;
-  let currentStatus = "online";
-  let onlineUsersInitialized = false;
-  const badgePathCache = new Map();
-
-  const topBar = document.getElementById("top-bar");
-  const datetimeElem = document.getElementById("datetime");
-
-  function updateDateTime() {
-    if (!datetimeElem) return;
-    const now = new Date();
-    const formatted = now.toLocaleString([], {
-      weekday: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-    datetimeElem.textContent = formatted;
-  }
-
-  setInterval(updateDateTime, 1000);
-  updateDateTime();
-
-if (topBar) topBar.style.display = "none";
-
-  function testImageUrl(src, timeout = 5000) {
-    return new Promise(resolve => {
-      try {
-        const img = new Image();
-        let done = false;
-        const cleanup = (result) => { if (!done) { done = true; resolve(result); } };
-        img.onload = () => cleanup(true);
-        img.onerror = () => cleanup(false);
-        // safety timeout
-        const t = setTimeout(() => cleanup(false), timeout);
-        img.src = src;
-      } catch (e) {
-        resolve(false);
-      }
-    });
-  }
-
-
-  async function resolveBadgePathForRole(role) {
-    if (!role) return null;
-    if (badgePathCache.has(role)) return badgePathCache.get(role);
-
-    const filename = role === "Founder" ? "founder-badge.png"
-                  : role === "Admin" ? "admin-badge.png"
-                  : role === "Mod" ? "mod-badge.png"
-                  : role === "Tester" ? "tester-badge.png"
-                  : null;
-
-    if (!filename) {
-      badgePathCache.set(role, null);
-      return null;
-  }
-
-  const candidates = [
-    `${window.location.origin}/assets/badges/${filename}`,
-    `/assets/badges/${filename}`,                         
-    `assets/badges/${filename}`,                          
-    `./assets/badges/${filename}`,                        
-    `../assets/badges/${filename}`                         
-  ];
-
-  for (const c of candidates) {
-    // quick log to help debugging
-    console.debug("Trying badge path:", c);
-    const ok = await testImageUrl(c, 3500);
-    if (ok) {
-      badgePathCache.set(role, c);
-      console.info("Resolved badge path for", role, "->", c);
-      return c;
-    }
-  }
-
-  console.warn("No valid badge file found for role:", role);
-  badgePathCache.set(role, null);
-  return null;
-}
-
-    function updateOnlineUsers() {
-      if (onlineUsersInitialized) return;
-      onlineUsersInitialized = true;
-
-      const onlineRef = collection(db, "onlineUsers");
-      setInterval(async () => {
-        try {
-          await setDoc(
-            doc(db, "onlineUsers", username),
-            { username, lastSeen: serverTimestamp(), status: currentStatus },
-            { merge: true }
-          );
-        } catch (err) {
-          console.error("Failed to update presence:", err);
-        }
-      }, 5000);
-
-      // Subscribe to onlineUsers collection
-      onSnapshot(onlineRef, async snapshot => {
-        const now = Date.now();
-        const seenDocIds = new Set();
-
-        // Use snapshot.docs so we can control ordering and await if needed
-        for (const docSnap of snapshot.docs) {
-          try {
-            const docId = docSnap.id;
-            const onlineData = docSnap.data();
-            if (!onlineData?.username) continue;
-            if (onlineData.username === username) continue; // skip self
-
-            // tolerant lastSeen read
-            const lastSeen = onlineData.lastSeen && onlineData.lastSeen.toMillis ? onlineData.lastSeen.toMillis() : 0;
-            if (now - lastSeen > 15000) continue; // stale
-            seenDocIds.add(docId);
-
-            // if we already rendered this docId, skip creation
-            if (onlineUsersMap.has(docId)) continue;
-
-            // create DOM
-            const userDiv = document.createElement("div");
-            userDiv.className = "user-entry";
-
-            const usernameSpan = document.createElement("span");
-            usernameSpan.className = "user-name";
-            usernameSpan.style.display = "inline-flex";
-            usernameSpan.style.alignItems = "center";
-            usernameSpan.style.gap = "6px";
-            usernameSpan.textContent = onlineData.username;
-
-            userDiv.appendChild(usernameSpan);
-
-            const buttonsDiv = document.createElement("div");
-            buttonsDiv.className = "user-buttons";
-
-            const dmBtn = document.createElement("button");
-            dmBtn.className = "dm-btn";
-            dmBtn.textContent = "DM";
-            dmBtn.onclick = () => openDMModal(onlineData.username);
-
-            const blockBtn = document.createElement("button");
-            blockBtn.className = "block-btn";
-            blockBtn.textContent = blockedUsers.includes(onlineData.username) ? "Unignore" : "Ignore";
-            blockBtn.onclick = () => toggleBlock(onlineData.username, blockBtn);
-
-            buttonsDiv.append(dmBtn, blockBtn);
-            userDiv.appendChild(buttonsDiv);
-
-            usersDiv.appendChild(userDiv);
-
-            // store in map keyed by docId
-            onlineUsersMap.set(docId, { div: userDiv, usernameSpan, username: onlineData.username });
-
-            // subscribe to that user's main doc for role changes (keyed by docId)
-            const userDocRef = doc(db, "usernames", onlineData.username);
-            const unsubscribeRole = onSnapshot(userDocRef, async userSnap => {
-              try {
-                const userData = userSnap.data();
-                const role = userData?.role || null;
-
-                let badge = usernameSpan.querySelector(".badge");
-                let fallback = usernameSpan.querySelector(".role-fallback");
-
-                if (role) {
-                  // try to resolve a real image path for this role (cached)
-                  const resolved = await resolveBadgePathForRole(role);
-                  if (resolved) {
-                    // ensure an <img> exists
-                    if (!badge) {
-                      badge = document.createElement("img");
-                      badge.className = "badge";
-                      badge.alt = role;
-                      // onerror logs the broken src and hides it
-                      badge.onerror = () => {
-                        console.error("Badge image failed to load:", badge.src);
-                        badge.style.display = "none";
-                      };
-                      badge.onload = () => { badge.style.display = ""; };
-                      usernameSpan.appendChild(badge);
-                    }
-                    // remove fallback if present
-                    if (fallback) { fallback.remove(); fallback = null; }
-                    badge.src = resolved;
-                  } else {
-                    // no file found; render emoji/text fallback
-                    if (badge) badge.remove();
-                    if (!fallback) {
-                      fallback = document.createElement("span");
-                      fallback.className = "role-fallback";
-                      fallback.style.marginLeft = "6px";
-                      fallback.textContent = role === "Founder" ? "👑" : role === "Admin" ? "⭐" : role === "Tester" ? "🪲" : "🔧";
-                      usernameSpan.appendChild(fallback);
-                    } else {
-                      // update emoji if needed
-                      fallback.textContent = role === "Founder" ? "👑" : role === "Admin" ? "⭐" : role === "Tester" ? "🪲" : "🔧";
-                    }
-                  }
-                } else {
-                  // no role — remove both if present
-                  if (badge) badge.remove();
-                  if (fallback) fallback.remove();
-                }
-              } catch (err) {
-                console.error("Error in role snapshot handler:", err);
-              }
-            });
-
-            roleUnsubscribes.set(docId, unsubscribeRole);
-          } catch (err) {
-            console.error("Error processing online doc:", err);
-          }
-        }
-
-        // cleanup offline users & their unsubscribes (use docId keys)
-        for (const [docId, entry] of onlineUsersMap.entries()) {
-          if (!seenDocIds.has(docId)) {
-            try {
-              entry.div.remove();
-            } catch (e) { /* ignore */ }
-            onlineUsersMap.delete(docId);
-
-            const unsub = roleUnsubscribes.get(docId);
-            if (unsub) unsub();
-            roleUnsubscribes.delete(docId);
-          }
-        }
-      });
-    }
-
-  // --- Block/unblock ---
-  function toggleBlock(name, btn) {
-    if (blockedUsers.includes(name)) {
-      blockedUsers = blockedUsers.filter(n=>n!==name);
-      btn.textContent = "Ignore";
-    } else {
-      blockedUsers.push(name);
-      btn.textContent = "Unignore";
-    }
-    localStorage.setItem("blockedUsers", JSON.stringify(blockedUsers));
-    refreshMessages();
-  }
-
-  // --- DM handling ---
-  const dmContainer = document.getElementById("dm-container");
-  const dmWindows = new Map();
-  function openDMModal(otherUser) {
-    if (blockedUsers.includes(otherUser)) {
-      alert("You have ignored this user. You cannot DM them.");
-      return;
-    }
-    if (dmWindows.has(otherUser)) return;
-
-    const dmWindow = document.createElement("div");
-    dmWindow.classList.add("dm-window");
-
-    const header = document.createElement("div");
-    header.classList.add("dm-header");
-    header.textContent = otherUser;
-
-    const closeBtn = document.createElement("button");
-    closeBtn.textContent = "X";
-    closeBtn.style.background = "transparent";
-    closeBtn.style.border = "none";
-    closeBtn.style.color = "white";
-    closeBtn.style.fontSize = "16px";
-    closeBtn.style.cursor = "pointer";
-    closeBtn.onclick = () => {
-      unsubscribeDM();
-      dmWindow.remove();
-      dmWindows.delete(otherUser);
-    };
-    header.appendChild(closeBtn);
-    dmWindow.appendChild(header);
-
-    const chatBox = document.createElement("div");
-    chatBox.classList.add("dm-chat");
-    dmWindow.appendChild(chatBox);
-
-    const form = document.createElement("form");
-    form.classList.add("dm-form");
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = "Type a message..";
-    const sendBtn = document.createElement("button");
-    sendBtn.textContent = "Send";
-    sendBtn.type = "submit";
-    form.appendChild(input);
-    form.appendChild(sendBtn);
-    dmWindow.appendChild(form);
-
-    dmContainer.appendChild(dmWindow);
-    dmWindows.set(otherUser, dmWindow);
-
-    const roomName = [username, otherUser].sort().join("_DM_");
-    let unsubscribeDM = null;
-
-    const messagesRef = collection(db, "messages");
-    const q = query(messagesRef, orderBy("timestamp"));
-    unsubscribeDM = onSnapshot(q, snapshot => {
-      chatBox.innerHTML = "";
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        if (data.room !== roomName) return;
-        if (blockedUsers.includes(data.username)) return;
-
-        const msg = document.createElement("div");
-        msg.textContent = `${data.username}: ${data.text}`;
-        chatBox.appendChild(msg);
-
-        if (data.username !== username && document.hidden) {
-          notifyUser(`DM from ${data.username}`, data.text);
-        }
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-
-    form.addEventListener("submit", async e => {
-      e.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = "";
-      if (blockedUsers.includes(otherUser)) { alert("You have ignored this user. Cannot send DM."); return; }
-      await addDoc(collection(db,"messages"), { username, text, room: roomName, timestamp: serverTimestamp() });
-    });
-  }
-
-  // --- Username/Login ---
-  usernamePage.style.display="flex";
-  const savedUsername = localStorage.getItem("triochat_username");
-  if (savedUsername) checkLogin(savedUsername);
-
-    registerBtn.addEventListener("click", async ()=>{
-      const name = usernameInput.value.trim();
-      if(!name) return;
-
-      try {
-        await checkBan(name);
-      } catch (e) {
-        return; // stop login if banned
-      }
-
-      const usernameDoc = doc(db,"usernames",name);
-      const docSnap = await getDoc(usernameDoc);
-      if(docSnap.exists()){ 
-        errorDiv.textContent="Username is already taken."; 
-      } else {
-        await setDoc(usernameDoc,{created:serverTimestamp()});
+    <div class="app-container">
         
-        // --- generate login key automatically ---
-        const key = Math.random().toString(36).substring(2,10).toUpperCase();
-        const hashedKey = await hashKey(key);
-        await setDoc(doc(db, "loginKeys", name), {
-          key: hashedKey,
-          timestamp: serverTimestamp()
-        });
-        alert("Your login key is: " + key);
-
-        localStorage.setItem("triochat_username",name);
-        checkLogin(name);
-      }
-  });
-
-  loginKeyBtn.addEventListener("click", async ()=>{
-    const name = usernameInput.value.trim();
-    if(!name){ alert("Enter a username first!"); return; }
-
-    try {
-      await checkBan(name);
-    } catch (e) {
-      return; // stop login if banned
-    }
-
-    const keyInput = prompt("Enter your login key:");
-    if(!keyInput) return;
-
-    const keyDoc = await getDoc(doc(db, "loginKeys", name));
-    if(!keyDoc.exists()){ alert("No key found for this username."); return; }
-
-    const hashedInput = await hashKey(keyInput); // hash the entered key
-    const data = keyDoc.data();
-
-    if(data.key !== hashedInput){ 
-      alert("Invalid key!"); 
-      return; 
-    }
-
-    localStorage.setItem("triochat_username", name);
-    checkLogin(name);
-  });
-
-  async function checkBan(username) {
-    const banRef = doc(db, "bannedUsers", username);
-    const banSnap = await getDoc(banRef);
-    if (banSnap.exists()) {
-      const data = banSnap.data();
-      if (data.expiresAtMillis > Date.now()) {
-        alert("You are banned until " + new Date(data.expiresAtMillis).toLocaleString());
-        throw new Error("Banned user cannot log in");
-      } else {
-        await deleteDoc(banRef);
-      }
-    }
-  }
-
-  function checkLogin(name){
-    username = name;
-    usernamePage.style.display="none";
-    chatPage.style.display="flex";
-    if (topBar) topBar.style.display = "flex";
-    statusUsername.textContent = "You: " + username;
-    setDoc(doc(db,"onlineUsers",username), { username, lastSeen:serverTimestamp(), status: currentStatus });
-    updateOnlineUsers();
-    loadRoomsRealtime();
-    startChat(currentRoom);
-    listenForWarnings();
-    watchBanStatus(username)
-  }
-
-  function watchBanStatus(username) {
-    const banRef = doc(db, "bannedUsers", username);
-    onSnapshot(banRef, (banSnap) => {
-      if (banSnap.exists()) {
-        const data = banSnap.data();
-        const expiresAt = data.expiresAtMillis;
-
-        if (!expiresAt || expiresAt > Date.now()) {
-          alert("You have been banned and will be logged out.");
-          localStorage.removeItem("triochat_username");
-
-          // Remove them from online users immediately
-          deleteDoc(doc(db, "onlineUsers", username));
-
-          // Force logout UI
-          chatPage.style.display = "none";
-          usernamePage.style.display = "flex";
-          usernameInput.value = "";
-          errorDiv.textContent = "";
-        }
-      }
-    });
-  }
-
-  let seenWarnings = new Set(JSON.parse(localStorage.getItem("seenWarnings") || "[]"));
-
-  function listenForWarnings() {
-    const warnRef = doc(db, "warnings", username);
-    onSnapshot(warnRef, snap => {
-      if (snap.exists()) {
-        const warnings = snap.data().list || [];
-        const lastWarning = warnings[warnings.length - 1];
-        if (lastWarning && !seenWarnings.has(lastWarning)) {
-          alert(`You have a new warning!: ${lastWarning}`);
-          seenWarnings.add(lastWarning);
-          localStorage.setItem("seenWarnings", JSON.stringify([...seenWarnings]));
-        }
-      }
-    });
-  }
-
-  const adminPanelBtn = document.getElementById("admin-panel-btn");
-  const adminPanelPopup = document.getElementById("admin-panel-popup");
-  const adminUserList = document.getElementById("admin-user-list");
-  const closeAdminPanelBtn = document.getElementById("close-admin-panel");
-
-  async function checkAdminPanelAccess() {
-      if (!username) return false; // make sure user is logged in
-
-      try {
-          const userDoc = await getDoc(doc(db, "usernames", username));
-          if (!userDoc.exists()) return false;
-
-          const data = userDoc.data();
-          const role = (data?.role || data?.Role || "").toString(); // ensure string
-          const allowedRoles = ["Founder","Admin","Mod"];
-          const hasAccess = allowedRoles.includes(role);
-
-          adminPanelBtn.style.display = hasAccess ? "block" : "none";
-          return hasAccess;
-      } catch (err) {
-          console.error("Error checking admin panel access:", err);
-          adminPanelBtn.style.display = "none";
-          return false;
-      }
-  }
-
-  adminPanelBtn.onclick = () => {
-    adminPanelPopup.style.display = "block";
-    loadAdminUsers();
-  };
-
-  const usersTab = document.getElementById("users-tab");
-  const warningsTab = document.getElementById("warnings-tab");
-
-  // Close panel
-  closeAdminPanelBtn.onclick = () => adminPanelPopup.style.display = "none";
-
-  // Tabs
-  usersTab.onclick = () => {
-    usersView.style.display = "block";
-    warningsView.style.display = "none";
-    loadAdminUsers();
-  };
-
-  warningsTab.onclick = () => {
-    usersView.style.display = "none";
-    warningsView.style.display = "block";
-    loadAllWarnings();
-  };
-
-  async function loadAdminUsers() {
-    usersView.innerHTML = "";
-
-    const usersSnapshot = await getDocs(collection(db, "usernames"));
-
-    usersSnapshot.forEach(async (userSnap) => {
-      const u = userSnap.id;
-      if (u === username) return; // skip self
-
-      const div = document.createElement("div");
-      div.style.display = "flex";
-      div.style.justifyContent = "space-between";
-      div.style.color = "black";
-      div.style.margin = "5px 0";
-      div.style.padding = "5px";
-      div.style.borderBottom = "1px solid #ccc";
-
-      const nameSpan = document.createElement("span");
-      nameSpan.textContent = u;
-
-      const btnsDiv = document.createElement("div");
-      btnsDiv.style.display = "flex";
-      btnsDiv.style.gap = "5px";
-
-      // WARN BUTTON
-      const warnBtn = document.createElement("button");
-      warnBtn.textContent = "Warn";
-      warnBtn.onclick = async () => {
-        const reason = prompt(`Enter reason for warning ${u}:`);
-        if (!reason) return;
-
-        const warnRef = doc(db, "warnings", u);
-        const warnSnap = await getDoc(warnRef);
-        let warnings = warnSnap.exists() ? warnSnap.data().list || [] : [];
-        warnings.push(`Warning ${warnings.length + 1}: ${reason}`);
-        await setDoc(warnRef, { list: warnings });
-        alert(`${u} has been warned: ${reason}`);
-      };
-
-      // BAN BUTTON
-      const banBtn = document.createElement("button");
-      const banRef = doc(db, "bannedUsers", u);
-      const banSnap = await getDoc(banRef);
-      let isBanned =
-        banSnap.exists() && banSnap.data().expiresAtMillis > Date.now();
-
-      banBtn.textContent = isBanned ? "Unban" : "Ban";
-      banBtn.style.background = isBanned ? "#6c757d" : "#dc3545";
-
-      banBtn.onclick = async () => {
-        if (isBanned) {
-          await deleteDoc(banRef);
-          alert(`${u} has been unbanned.`);
-          isBanned = false;
-          banBtn.textContent = "Ban";
-          banBtn.style.background = "#dc3545";
-        } else {
-          const hours = parseFloat(
-            prompt(`Enter ban duration in hours for ${u}:`)
-          );
-          if (!hours || hours <= 0) return alert("Invalid duration.");
-          const expiresAt = new Date(Date.now() + hours * 3600 * 1000);
-          await setDoc(banRef, {
-            banned: true,
-            expiresAtMillis: expiresAt.getTime(),
-          });
-          await deleteDoc(doc(db, "onlineUsers", u)); // kick them
-          alert(`${u} has been banned for ${hours} hour(s).`);
-          isBanned = true;
-          banBtn.textContent = "Unban";
-          banBtn.style.background = "#6c757d";
-        }
-      };
-
-      // MUTE BUTTON
-      const muteBtn = document.createElement("button");
-      const muteRef = doc(db, "mutedUsers", u);
-      const muteSnap = await getDoc(muteRef);
-      let isMuted = muteSnap.exists();
-
-      muteBtn.textContent = isMuted ? "Unmute" : "Mute";
-      muteBtn.style.background = isMuted ? "#6c757d" : "#28a745";
-
-      muteBtn.onclick = async () => {
-        if (isMuted) {
-          await deleteDoc(muteRef);
-          alert(`${u} has been unmuted.`);
-          isMuted = false;
-          muteBtn.textContent = "Mute";
-          muteBtn.style.background = "#28a745";
-        } else {
-          await setDoc(muteRef, { muted: true });
-          alert(`${u} has been muted.`);
-          isMuted = true;
-          muteBtn.textContent = "Unmute";
-          muteBtn.style.background = "#6c757d";
-        }
-      };
-
-      btnsDiv.append(warnBtn, banBtn, muteBtn);
-      div.append(nameSpan, btnsDiv);
-      usersView.appendChild(div);
-    });
-  }
-
-    // --- Load All Warnings ---
-    async function loadAllWarnings() {
-      warningsView.innerHTML = ""; // clear the warnings view
-
-      const warningsSnapshot = await getDocs(collection(db, "warnings"));
-      warningsSnapshot.forEach(warnSnap => {
-        const u = warnSnap.id;
-        const warnings = warnSnap.data().list || [];
-
-        const div = document.createElement("div");
-        div.style.marginBottom = "10px";
-
-        const name = document.createElement("h4");
-        name.textContent = u;
-        name.style.color = "black"; // username in black
-        div.appendChild(name);
-
-        const ul = document.createElement("ul");
-        warnings.forEach(w => {
-          const li = document.createElement("li");
-          li.textContent = w;
-          li.style.color = "black";
-          ul.appendChild(li);
-        });
-
-        div.appendChild(ul);
-        warningsView.appendChild(div);
-      });
-    }
-
-  // Run check on login
-  checkAdminPanelAccess();
-
-  // Remove self on exit
-  window.addEventListener("beforeunload", async ()=> {
-    await deleteDoc(doc(db,"onlineUsers",username));
-  });
-
-  const adminUsersTab = document.getElementById("users-tab");
-  const adminWarningsTab = document.getElementById("warnings-tab");
-  const usersView = document.getElementById("users-view");
-  const warningsView = document.getElementById("warnings-view");
-
-  adminUsersTab.onclick = () => {
-    usersView.style.display = "block";
-    warningsView.style.display = "none";
-    loadAdminUsers();
-  };
-
-  adminWarningsTab.onclick = () => {
-    usersView.style.display = "none";
-    warningsView.style.display = "block";
-    loadAllWarnings();
-  };
-
-  // Load all warnings
-  async function loadWarnings() {
-    warningsView.innerHTML = "<h3>User Warnings</h3>";
-
-    const usersSnapshot = await getDocs(collection(db, "warnings"));
-    for (const userDoc of usersSnapshot.docs) {
-      const username = userDoc.id;
-      const warningsCol = collection(db, "warnings", username, "warnings");
-      const warningsSnap = await getDocs(warningsCol);
-
-      if (warningsSnap.empty) continue;
-
-      const userDiv = document.createElement("div");
-      userDiv.style.marginBottom = "10px";
-
-      const title = document.createElement("h4");
-      title.textContent = username;
-      userDiv.appendChild(title);
-
-      const list = document.createElement("ul");
-      warningsSnap.forEach(w => {
-        const li = document.createElement("li");
-        const data = w.data();
-        li.textContent = `${data.reason} (${data.timestamp?.toDate?.().toLocaleString() || "no date"})`;
-
-        // Optional clear button for each warning
-        const clearBtn = document.createElement("button");
-        clearBtn.textContent = "Clear";
-        clearBtn.onclick = async () => {
-          await deleteDoc(doc(db, "warnings", username, "warnings", w.id));
-          loadWarnings();
-        };
-
-        li.appendChild(clearBtn);
-        list.appendChild(li);
-      });
-
-      userDiv.appendChild(list);
-      warningsView.appendChild(userDiv);
-    }
-  }
-
-  // --- Rooms real-time ---
-  function loadRoomsRealtime() {
-    const roomsRef = collection(db,"rooms");
-    if(unsubscribeRooms) unsubscribeRooms();
-    unsubscribeRooms = onSnapshot(roomsRef, snapshot => {
-      roomButtonsContainer.querySelectorAll('.room-btn').forEach(btn=>{
-        if(!["Room 1","Room 2","Room 3"].includes(btn.dataset.room)) btn.remove();
-      });
-      snapshot.forEach(docSnap=>{
-        const data = docSnap.data();
-        if(data.private && !data.allowedUsers.includes(username)) return;
-        addRoomButton(docSnap.id);
-      });
-      addRoomListeners();
-      setActiveRoomButton();
-      startChat(currentRoom);
-    });
-  }
-
-  function addRoomButton(name){
-    if(document.querySelector(`.room-btn[data-room='${name}']`)) return;
-    const btn=document.createElement("button");
-    btn.classList.add("room-btn");
-    btn.dataset.room=name;
-    btn.textContent=name;
-    roomButtonsContainer.insertBefore(btn, document.getElementById("create-room-btn"));
-  }
-
-  function addRoomListeners(){
-    roomButtons = document.querySelectorAll(".room-btn");
-    roomButtons.forEach(btn=>{
-      btn.onclick = ()=>{
-        const selectedRoom = btn.dataset.room;
-        if(selectedRoom===currentRoom) return;
-        currentRoom=selectedRoom;
-        setActiveRoomButton();
-        startChat(currentRoom);
-      };
-    });
-  }
-
-  function setActiveRoomButton(){
-    roomButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        roomButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        const newRoom = btn.dataset.room;
-        startChat(newRoom);
-      });
-    });
-  }
-
-  let notificationsEnabled = false;
-
-  // Ask permission once
-  if ("Notification" in window) {
-    Notification.requestPermission().then(permission => {
-      notificationsEnabled = permission === "granted";
-    });
-  }
-
-  function notifyUser(title, body) {
-    if (!notificationsEnabled) return;
-
-    // Show notification
-    const notif = new Notification(title, {
-      body,
-      icon: "assets/icons/chat-icon.png" // optional, put your icon path
-    });
-
-    // Play sound
-    const audio = document.getElementById("notif-sound");
-    if (audio) audio.play();
-
-    // Optional: close after 5 seconds
-    setTimeout(() => notif.close(), 5000);
-  }
-
-  // --- Chat ---
-  function startChat(roomName) {
-    // Unsubscribe from any previous listener
-    if (unsubscribeMessages) unsubscribeMessages();
-
-    currentRoom = roomName;
-    chatBox.innerHTML = "";
-
-    const messagesRef = collection(db, "messages");
-    const q = query(
-      messagesRef,
-      where("room", "==", currentRoom),
-      orderBy("timestamp")
-    );
-
-    unsubscribeMessages = onSnapshot(q, (snapshot) => {
-      chatBox.innerHTML = ""; // clear and rebuild
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (blockedUsers.includes(data.username)) return;
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add("msg");
-        msgDiv.textContent = `${data.username}: ${data.text}`;
-        chatBox.appendChild(msgDiv);
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-  }
-
-  function renderMessages(){
-    chatBox.innerHTML="";
-    cachedMessages.forEach(data=>{
-      if(blockedUsers.includes(data.username)) return;
-      const msg=document.createElement("div");
-      msg.classList.add("msg");
-      msg.textContent=`${data.username}: ${data.text}`;
-      chatBox.appendChild(msg);
-    });
-    chatBox.scrollTop=chatBox.scrollHeight;
-  }
-
-  function refreshMessages(){ renderMessages(); }
-
-  messageForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const text = messageInput.value.trim();
-    if (!text) return;
-
-    sendButton.disabled = true;
-
-    try {
-      // --- Mute/Ban Check ---
-      const muteDoc = await getDoc(doc(db, "mutedUsers", username));
-      if (muteDoc.exists() && muteDoc.data().muted) {
-        alert("You are muted and cannot send messages.");
-        return;
-      }
-
-      const banDoc = await getDoc(doc(db, "bannedUsers", username));
-      if (banDoc.exists() && banDoc.data().banned) {
-        alert("You are banned.");
-        location.reload();
-        return;
-      }
-
-      // --- Normal message send ---
-      await addDoc(collection(db, "messages"), {
-        text,
-        username,
-        room: currentRoom,
-        timestamp: serverTimestamp(),
-      });
-
-      messageInput.value = "";
-    } finally {
-      sendButton.disabled = false;
-    }
-  });
-
-  // --- Create private room with multiple users ---
-  document.getElementById("create-room-btn").addEventListener("click", async () => {
-    // Check if user already has a private room
-    const roomsRef = collection(db, "rooms");
-    const snapshot = await getDocs(roomsRef);
-    const hasPrivateRoom = snapshot.docs.some(docSnap => {
-      const data = docSnap.data();
-      return data.private && data.allowedUsers.includes(username);
-    });
-
-    if (hasPrivateRoom) {
-      alert("You can only create one private room.");
-      return;
-    }
-
-    const roomName = prompt("Enter new private room name:");
-    if (!roomName) return;
-
-    const otherUsersInput = prompt("Enter usernames to share with, separated by commas:");
-    if (!otherUsersInput) return;
-
-    const otherUsers = otherUsersInput
-      .split(",")
-      .map(u => u.trim())
-      .filter(u => u && u !== username); // Remove empty or own username
-
-    if (otherUsers.length === 0) {
-      alert("You must enter at least one other user.");
-      return;
-    }
-
-    await setDoc(doc(db, "rooms", roomName), {
-      private: true,
-      allowedUsers: [username, ...otherUsers]
-    });
-
-    alert(`Private room "${roomName}" created with: ${otherUsers.join(", ")}`);
-  });
-
-  const settingsOverlay = document.getElementById("settings-overlay");
-
-  settingsBtn.onclick = () => {
-    settingsPopup.style.display = "block";
-    settingsOverlay.style.display = "block";
-  };
-
-  closeSettingsTopBtn.onclick = () => {
-    settingsPopup.style.display = "none";
-    settingsOverlay.style.display = "none";
-  };
-
-  deleteAccountBtn.onclick = async () => {
-    const confirmDelete = confirm("Are you sure you want to delete your account? This cannot be undone.");
-    if (!confirmDelete) return;
-
-    try {
-      // Remove from online users
-      await deleteDoc(doc(db, "onlineUsers", username));
-      
-      // Delete username
-      await deleteDoc(doc(db, "usernames", username));
-      
-      // Delete login key
-      await deleteDoc(doc(db, "loginKeys", username));
-
-      // Clear local storage and reload
-      localStorage.removeItem("triochat_username");
-      alert("Your account has been deleted.");
-      location.reload();
-    } catch (err) {
-      console.error(err);
-      alert("Error deleting account. Check console.");
-    }
-  };
-
-  // Utility: hash string with SHA-256 and return hex
-  async function hashKey(key) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(key);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
-
-  // Generate key
-  generateKeySettingsBtn.onclick = async ()=>{
-    const key = Math.random().toString(36).substring(2,10).toUpperCase();
-    const hashedKey = await hashKey(key);
-
-    await setDoc(doc(db, "loginKeys", username), {
-      key: hashedKey,
-      timestamp: serverTimestamp()
-    });
-
-    alert("Your login key is: " + key);
-  };
-
-  darkModeToggleBtn.onclick = () => {
-      body.classList.toggle("dark-theme");
-      const darkModeEnabled = body.classList.contains("dark-theme");
-      localStorage.setItem("darkMode", darkModeEnabled);
-  };
-
-  // Logout
-  logoutBtn.onclick = async ()=>{
-    await deleteDoc(doc(db,"onlineUsers",username));
-    localStorage.removeItem("triochat_username");
-    location.reload();
-  };
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("status-page-btn");
-    if (btn) {
-      btn.onclick = () => window.location.href = "pages/status.html";
-    }
-  });
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("rules-page-btn");
-    if (btn) {
-      btn.onclick = () => window.location.href = "pages/rules.html";
-    }
-  });
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("updates-page-btn");
-    if (btn) {
-      btn.onclick = () => window.location.href = "pages/updates.html";
-    }
-  });
-
-  function updateVersionLabelTheme() {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.body.classList.toggle('dark-theme', isDark);
-    document.body.classList.toggle('light-theme', !isDark);
-  }
-
-  // Run on page load
-  updateVersionLabelTheme();
-
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateVersionLabelTheme);
-  </script>
-  <div id="version-label">BETA v1.2.1</div>
-  <button id="status-page-btn">Status Page</button>
-  <button id="rules-page-btn">Rules</button>
-  <button id="updates-page-btn">Updates</button>
-  </body>
-  </html>
-  <script>console.log("Website has fully loaded!")</script>
-    
+        <aside class="channels-sidebar">
+           <div class="channel-header" style="justify-content: space-between;">
+            <span>TrioChat</span>
+            <button id="view-rules-btn" class="icon-btn-small" title="Community Rules">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </button>
+        </div>
+            
+            <div class="channels-section">
+                <div class="channels-label">
+                    <span>GLOBAL ROOMS</span>
+                    <button id="add-channel-btn" class="add-channel-btn" title="Create Public Room">+</button>
+                </div>
+                <div id="channel-list" class="channel-list"></div>
+            </div>
+
+            <div class="channels-section" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                <div class="channels-label">
+                    <span>DIRECT MESSAGES</span>
+                    <button id="add-dm-btn" class="add-channel-btn" title="Message a Friend">+</button>
+                </div>
+                <div id="dm-list" class="channel-list"></div>
+            </div>
+
+            <div class="user-profile" style="position: relative;">
+                <div id="current-status-dot" class="user-status-dot dot-online" title="Change Status"></div>
+                
+                <div class="user-info">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="username-display">Loading...</span>
+                        <button id="user-settings-btn" class="icon-btn-small" title="User Settings">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="status-picker-menu" class="status-picker-menu hidden">
+                    <div class="status-option" data-status="online">
+                        <div class="status-dot dot-online"></div> <span>Online</span>
+                    </div>
+                    <div class="status-option" data-status="idle">
+                        <div class="status-dot dot-idle"></div> <span>Idle</span>
+                    </div>
+                    <div class="status-option" data-status="dnd">
+                        <div class="status-dot dot-dnd"></div> <span>Do Not Disturb</span>
+                    </div>
+                    <div class="status-option" data-status="invisible">
+                        <div class="status-dot dot-invisible"></div> <span>Invisible</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="chat-area">
+            <div class="chat-header">
+                <h3 id="current-channel-name"># welcome</h3>
+                <span id="channel-desc" style="margin-left: 10px;">Global Chat</span>
+            </div>
+            
+            <div id="messages-feed" class="messages-feed"></div>
+
+            <form id="message-form" class="message-input-area">
+                <input type="text" id="message-input" placeholder="Message #welcome" autocomplete="off">
+            </form>
+        </main> 
+
+        <aside class="members-sidebar">
+            <div class="members-header">
+                CHATTERS -<span id="online-count">0</span>
+            </div>
+            <div id="members-list" class="members-list"></div>
+        </aside>
+
+    </div> <div id="create-channel-modal" class="modal hidden">
+        <div class="modal-content" style="width: 450px; text-align: left;">
+            <h3 style="text-align: center;">Create Private Group</h3>
+            <p style="text-align: center; margin-bottom: 20px;">Name your group and select friends to add.</p>
+            
+            <label style="font-size: 12px; font-weight: bold; color: #b9bbbe; text-transform: uppercase;">GROUP NAME</label>
+            <input type="text" id="new-group-name" placeholder="Silly people" style="margin-top: 5px;">
+
+            <label style="font-size: 12px; font-weight: bold; color: #b9bbbe; text-transform: uppercase;">SELECT FRIENDS</label>
+            <div id="friend-selector-list" class="friend-selector-list">
+                <p style="padding: 10px; color: #72767d; font-size: 13px;">Loading friends...</p>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button id="cancel-channel-btn" class="btn-cancel">Cancel</button>
+                <button id="create-channel-submit" class="btn-create">Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="friends-modal" class="modal hidden">
+        <div class="modal-content" style="width: 500px;">
+            <h3>Friends Center</h3>
+            
+            <div class="modal-tabs">
+                <button id="tab-add-friend" class="active">Add Friend</button>
+                <button id="tab-pending">Pending Requests <span id="pending-badge" class="badge hidden">0</span></button>
+            </div>
+
+            <div id="view-add-friend">
+                <p>Enter a username to send a friend request.</p>
+                <input type="text" id="friend-username-input" placeholder="CoolUser123">
+                <button id="send-request-btn" class="btn-create" style="width: 100%">Send Request</button>
+                <p id="friend-status-msg" style="margin-top: 10px; font-size: 14px;"></p>
+            </div>
+
+            <div id="view-pending" class="hidden">
+                <div id="pending-list" class="pending-list">
+                    <p style="color: #72767d; margin-top: 20px;">No pending requests.</p>
+                </div>
+            </div>
+
+            <button id="close-friends-btn" class="btn-cancel" style="margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <div id="user-profile-modal" class="modal hidden">
+        <div class="modal-content profile-card">
+            <div class="profile-banner"></div>
+            
+            <div class="profile-header">
+                <img id="profile-modal-avatar" src="" class="profile-avatar-large">
+                
+                <div class="profile-info-main">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <h2 id="profile-modal-name">Username</h2>
+                        <div id="profile-modal-badges" class="profile-badges"></div>
+                    </div>
+                    <span id="profile-modal-status" class="status-text">Online</span>
+                </div>
+            </div>
+
+            <div class="profile-body">
+                <label>User ID</label>
+                <p id="profile-modal-id">---</p>
+                
+                <label>Joined TrioChat</label>
+                <p id="profile-modal-joined">---</p>
+
+                <div class="profile-actions">
+                    <button id="profile-message-btn" class="btn-create">Message</button>
+                    <button id="close-profile-btn" class="btn-cancel">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div id="settings-modal" class="modal hidden">
+        <div class="modal-content settings-container">
+            <aside class="settings-sidebar">
+                <h3 class="settings-nav-header">USER SETTINGS</h3>
+                <button class="settings-nav-item active" data-tab="account">My Account</button>
+                <button class="settings-nav-item" data-tab="profile">User Profile</button>
+                <div class="sidebar-separator"></div>
+                <button id="logout-btn-alt" class="settings-nav-item logout-red" style="color: #f04747;">Log Out</button>
+            </aside>
+
+            <main class="settings-main">
+                <button id="close-settings-btn" class="settings-close-x">✕</button>
+                <section id="settings-tab-account" class="settings-section">
+                    <h2>My Account</h2>
+                    <div class="settings-card">
+                        <div class="input-group">
+                            <label>DISPLAY NAME</label>
+                            <input type="text" id="settings-username-input" placeholder="New Username">
+                        </div>
+                    </div>
+                </section>
+                <section id="settings-tab-profile" class="settings-section hidden">
+                    <h2>User Profile</h2>
+                    <div class="settings-card">
+                        <div class="profile-preview-box">
+                            <div class="preview-header">PREVIEW</div>
+                            <div class="preview-content">
+                                <img id="settings-avatar-img" src="" class="avatar">
+                                <div class="preview-text">
+                                    <span class="preview-name" id="preview-display-name">Username</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>CUSTOM IMAGE URL</label>
+                            <input type="text" id="settings-url-input" placeholder="https://example.com/photo.png">
+                        </div>
+                        <div class="input-group">
+                            <label>OR DICEBEAR SEED</label>
+                            <input type="text" id="settings-avatar-input" placeholder="Enter a word to generate a unique look">
+                        </div>
+                    </div>
+                </section>
+                <footer class="settings-footer">
+                    <button id="save-settings-btn" class="btn-create">Save Changes</button>
+                </footer>
+            </main>
+        </div>
+    </div> <div id="rules-modal" class="modal hidden">
+        <div class="modal-content" style="width: 520px; text-align: left; display: flex; flex-direction: column;">
+            <h2 style="text-align: center; margin-bottom: 20px;">📜 TrioChat Community Guidelines</h2>
+            <div class="rules-list" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                <div class="rule-item">
+                    <span class="rule-num">1</span>
+                    <p><strong>Zero Tolerance:</strong> Use your brain and have common sense.</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">2</span>
+                    <p><strong>Content Safety:</strong> No NSFW photo links or content.</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">3</span>
+                    <p><strong>Chat Integrity:</strong> No spamming. Keep the feed readable.</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">4</span>
+                    <p><strong>Technical Rules:</strong> Bug abusing, raiding, or attempting to crash the Firebase service is strictly prohibited.</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">5</span>
+                    <p><strong>Storage Usage:</strong> Purposely creating rooms, users, or DMs to fill storage is not allowed. This will get your ip banned.</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">6</span>
+                    <p><strong>Security:</strong> No account stealing or scamming.</p>
+                </div>
+                <div class="rule-item" style="background: rgba(88, 101, 242, 0.1); border-color: #d5dd8e;">
+                    <span class="rule-num" style="background: #fff; color: #d358f2;">!</span>
+                    <p><strong>Golden Rule:</strong> No racial slurs or harassment of any kind. Respect all chatters.</p>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                <button id="close-rules-btn" class="btn-create" style="width: 100%;">I Accept & Understand</button>
+            </div>
+        </div>
+    </div> <script type="module" src="assets/scripts/app.js"></script>
+</body>
+</html>
